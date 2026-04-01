@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+    <display-name>POS System</display-name>
+
+<context-param>
+    <param-name>db.url</param-name>
+    <param-value>jdbc:postgresql://18.60.112.102:5432/demo_onesoft?ssl=false&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory</param-value>
+</context-param>
+
+    <context-param>
+        <param-name>db.user</param-name>
+        <param-value>pgsql</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>db.password</param-name>
+        <param-value>tofze1-gEjmaf-mugdes</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>db.pool.size</param-name>
+        <param-value>10</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>controller.AppContextListener</listener-class>
+    </listener>
+
+    <session-config>
+        <session-timeout>60</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>false</secure>  <!-- ← false பண்ணுங்க -->
+        </cookie-config>
+    </session-config>
+
+</web-app>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================
+  Ant build file for POS Java/Tomcat/WAR project
+  ============================================================
+  Targets:
+    init        – create build directories
+    compile     – compile all Java sources
+    test        – run JUnit tests (optional)
+    war         – package everything into pos.war
+    deploy      – copy WAR to Tomcat's webapps/
+    clean       – remove all build artefacts
+    all         – clean → compile → war  (default)
+  ============================================================
+-->
+<project name="pos-system" default="all" basedir=".">
+
+    <!-- ── Properties ──────────────────────────────────────────────── -->
+    <property name="app.name"       value="pos"/>
+    <property name="app.version"    value="1.0.0"/>
+    <property name="war.name"       value="${app.name}.war"/>
+
+    <!-- Source directories -->
+    <property name="src.dir"        value="src"/>
+    <property name="webapp.dir"     value="webapp"/>
+    <property name="web.inf.dir"    value="${webapp.dir}/WEB-INF"/>
+
+    <!-- Build directories -->
+    <property name="build.dir"      value="build"/>
+    <property name="classes.dir"    value="${build.dir}/classes"/>
+    <property name="dist.dir"       value="dist"/>
+    <property name="report.dir"     value="${build.dir}/reports"/>
+
+    <!-- Library directories -->
+    <property name="lib.dir"        value="lib"/>
+    <property name="test.lib.dir"   value="lib/test"/>
+
+    <!-- Tomcat deployment path – override on command line:
+         ant deploy -Dtomcat.home=/opt/tomcat -->
+    <property name="tomcat.home" value="C:\Users\kassa\Downloads\Apache_ant\apache-tomcat-10.1.53-windows-x64\apache-tomcat-10.1.53"/>
+    <property name="deploy.dir"     value="${tomcat.home}/webapps"/>
+
+    <!-- Java compile settings -->
+    <property name="javac.source"   value="17"/>
+    <property name="javac.target"   value="17"/>
+    <property name="javac.debug"    value="true"/>
+    <property name="javac.encoding" value="UTF-8"/>
+
+    <!-- ── Classpath ───────────────────────────────────────────────── -->
+    <path id="compile.classpath">
+        <!-- Tomcat provided APIs (servlet-api, jsp-api) -->
+        <!-- <fileset dir="${tomcat.home}/lib">
+            <include name="*.jar"/>
+        </fileset> -->
+        <!-- Application runtime dependencies in lib/ -->
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="test.classpath">
+        <path refid="compile.classpath"/>
+        <pathelement location="${classes.dir}"/>
+        <fileset dir="${test.lib.dir}" erroronmissingdir="false">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <!-- ── Targets ─────────────────────────────────────────────────── -->
+
+    <!-- init: create required directories -->
+    <target name="init" description="Create build directories">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${report.dir}"/>
+        <echo message="Build directories created."/>
+    </target>
+
+    <!-- compile: compile all Java sources -->
+    <target name="compile" depends="init" description="Compile Java sources">
+        <javac
+            srcdir="${src.dir}"
+            destdir="${classes.dir}"
+            source="${javac.source}"
+            target="${javac.target}"
+            debug="${javac.debug}"
+            encoding="${javac.encoding}"
+            includeantruntime="false">
+            <classpath refid="compile.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+        <echo message="Compilation finished."/>
+    </target>
+
+    <!-- test: run JUnit tests if test sources exist -->
+    <target name="test" depends="compile" description="Run JUnit tests">
+        <junit printsummary="yes" haltonfailure="no" fork="yes">
+            <classpath refid="test.classpath"/>
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}">
+                <fileset dir="${src.dir}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <junitreport todir="${report.dir}">
+            <fileset dir="${report.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${report.dir}/html"/>
+        </junitreport>
+        <echo message="Tests completed. Reports in ${report.dir}/html"/>
+    </target>
+
+    <!-- war: package the application into a deployable WAR file -->
+    <target name="war" depends="compile" description="Create WAR file">
+        <war destfile="${dist.dir}/${war.name}" webxml="${web.inf.dir}/web.xml">
+
+            <!-- Static web resources (HTML, JS, CSS if any) -->
+            <fileset dir="${webapp.dir}">
+                <exclude name="WEB-INF/**"/>
+            </fileset>
+
+            <!-- WEB-INF/classes: compiled Java classes -->
+            <classes dir="${classes.dir}"/>
+
+            <!-- WEB-INF/lib: runtime JARs -->
+            <lib dir="${lib.dir}">
+                <include name="*.jar"/>
+                <!-- Exclude servlet-api – it's provided by Tomcat -->
+                <exclude name="servlet-api*.jar"/>
+                <exclude name="jsp-api*.jar"/>
+            </lib>
+
+            <!-- WEB-INF/ extras (taglibs, config files, etc.) -->
+            <webinf dir="${web.inf.dir}">
+                <include name="**/*"/>
+                <exclude name="web.xml"/>   <!-- already declared via webxml attr -->
+            </webinf>
+
+        </war>
+        <echo message="WAR created: ${dist.dir}/${war.name}"/>
+    </target>
+
+    <!-- deploy: copy the WAR directly to Tomcat webapps -->
+    <target name="deploy" depends="war" description="Deploy WAR to Tomcat">
+        <copy file="${dist.dir}/${war.name}"
+              todir="${deploy.dir}"
+              overwrite="true"/>
+        <echo message="Deployed ${war.name} to ${deploy.dir}"/>
+    </target>
+
+    <!-- clean: remove all generated files -->
+    <target name="clean" description="Remove build artefacts">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <echo message="Cleaned build artefacts."/>
+    </target>
+
+    <!-- all: full clean build (default target) -->
+    <target name="all" depends="clean, compile, war"
+            description="Full clean build and package">
+        <echo message="Build complete: ${dist.dir}/${war.name}"/>
+    </target>
+
+    <!-- print-env: show build configuration -->
+    <target name="print-env" description="Print build environment">
+        <echo message="App name    : ${app.name}"/>
+        <echo message="Version     : ${app.version}"/>
+        <echo message="Source dir  : ${src.dir}"/>
+        <echo message="Tomcat home : ${tomcat.home}"/>
+        <echo message="Deploy dir  : ${deploy.dir}"/>
+        <echo message="Java source : ${javac.source}"/>
+    </target>
+
+</project>
