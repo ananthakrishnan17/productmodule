@@ -5,23 +5,20 @@
                              https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
          version="5.0">
 
-    <display-name>POS System</display-name>
-
-<context-param>
-    <param-name>db.url</param-name>
-    <param-value>jdbc:postgresql://18.60.112.102:5432/demo_onesoft?ssl=false&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory</param-value>
-</context-param>
+    <display-name>Product Module</display-name>
 
     <context-param>
-        <param-name>db.user</param-name>
-        <param-value>pgsql</param-value>
+        <param-name>db.url</param-name>
+        <param-value>jdbc:postgresql://18.60.112.102:5432/demo_onesoft</param-value>
     </context-param>
-
+    <context-param>
+        <param-name>db.user</param-name>
+        <param-value>demo_onesoft</param-value>
+    </context-param>
     <context-param>
         <param-name>db.password</param-name>
         <param-value>tofze1-gEjmaf-mugdes</param-value>
     </context-param>
-
     <context-param>
         <param-name>db.pool.size</param-name>
         <param-value>10</param-value>
@@ -35,7 +32,7 @@
         <session-timeout>60</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
-            <secure>false</secure>  <!-- ← false பண்ணுங்க -->
+            <secure>false</secure>
         </cookie-config>
     </session-config>
 
