@@ -18,17 +18,19 @@ public class AppContextListener implements ServletContextListener {
             String dbPassword = getParam(sce, "db.password", "pos_pass");
             int    poolSize   = Integer.parseInt(getParam(sce, "db.pool.size", "10"));
 
-            LOG.info("Product module connecting to: " + dbUrl);
+            LOG.info("=== Product module connecting to: " + dbUrl + " ===");
             Class.forName("org.postgresql.Driver");
             ServiceLocator.init(dbUrl, dbUser, dbPassword, poolSize);
-            LOG.info("Product module started successfully.");
+            LOG.info("=== Product module started successfully ===");
 
         } catch (ClassNotFoundException e) {
-            LOG.severe("JDBC Driver not found: " + e.getMessage());
+            LOG.severe("=== JDBC Driver not found: " + e.getMessage() + " ===");
+            e.printStackTrace();
         } catch (java.sql.SQLException e) {
-            LOG.severe("DB Connection FAILED: " + e.getMessage());
+            LOG.severe("=== DB Connection FAILED: " + e.getMessage() + " ===");
+            e.printStackTrace();
         } catch (Exception e) {
-            LOG.severe("Startup error: " + e.getMessage());
+            LOG.severe("=== Startup FAILED: " + e.getClass().getName() + ": " + e.getMessage() + " ===");
             e.printStackTrace();
         }
     }

@@ -3,10 +3,10 @@
 // ============================================================
 package repository;
 
-import model.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import model.*;
 
 public class ProductDAO {
 
@@ -126,30 +126,28 @@ public class ProductDAO {
         return list;
     }
 
-    public List<ProductTemplate> findAll(Connection conn, long companyId,
-                                          boolean activeOnly, int offset, int limit) throws SQLException {
-        String sql = """
-            SELECT * FROM product_template
-            WHERE company_id = ?
-            """ + (activeOnly ? " AND active = TRUE" : "") + """
-            ORDER BY name ASC
-            LIMIT ? OFFSET ?
-            """;
-        List<ProductTemplate> list = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, companyId);
-            ps.setInt(2, limit);
-            ps.setInt(3, offset);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ProductTemplate t = mapTemplate(rs);
-                    t.setTaxIds(findTaxIdsByTemplate(conn, t.getId()));
-                    list.add(t);
-                }
+   public List<ProductTemplate> findAll(Connection conn, long companyId,
+                                      boolean activeOnly, int offset, int limit) throws SQLException {
+    // Text block concatenation avoid பண்ணுங்க — simple String use பண்ணுங்க
+    String sql = "SELECT * FROM product_template WHERE company_id = ?"
+               + (activeOnly ? " AND active = TRUE" : "")
+               + " ORDER BY name ASC LIMIT ? OFFSET ?";
+
+    List<ProductTemplate> list = new ArrayList<>();
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setLong(1, companyId);
+        ps.setInt(2, limit);
+        ps.setInt(3, offset);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ProductTemplate t = mapTemplate(rs);
+                t.setTaxIds(findTaxIdsByTemplate(conn, t.getId()));
+                list.add(t);
             }
         }
-        return list;
     }
+    return list;
+}
 
     public ProductProduct findVariantByBarcode(Connection conn, String barcode) throws SQLException {
         String sql = """
